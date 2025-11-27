@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PASCAL PRESS SIMULATOR</title>
+    <title>PASCAL PRESS SIMULATOR | Visualización Realista</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
     <style>
         :root {
             --bg-primary: #0a0f1c;
@@ -13,115 +14,416 @@
             --accent-purple: #7c3aed;
             --water-color: #00a8ff;
             --water-glow: rgba(0, 168, 255, 0.4);
+            --stanley-red: #e74c3c;
+            --stanley-glow: rgba(231, 76, 60, 0.4);
         }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Inter', sans-serif;
             background: radial-gradient(ellipse at center, #0a0f1c 0%, #050811 100%);
             color: #e2e8f0; min-height: 100vh; overflow-x: hidden;
         }
+        
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
         .header {
             text-align: center; padding: 30px;
             background: linear-gradient(135deg, rgba(0, 255, 204, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
             border: 1px solid rgba(0, 255, 204, 0.2); border-radius: 20px; margin-bottom: 30px;
         }
+        
         .header h1 {
-            font-size: 2.5rem; font-weight: 800;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 800;
             background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+        
         .control-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px; margin-bottom: 30px;
         }
+        
         .control-card {
             background: var(--bg-card); border: 1px solid rgba(124, 58, 237, 0.3);
             border-radius: 16px; padding: 20px; transition: transform 0.3s;
         }
+        
         .control-card:hover { transform: translateY(-5px); border-color: var(--accent-cyan); }
+        
         .card-title { color: var(--accent-cyan); font-weight: 600; margin-bottom: 15px; text-transform: uppercase; }
+        
         .input-field {
             width: 100%; background: rgba(0, 0, 0, 0.4); border: 2px solid rgba(124, 58, 237, 0.3);
             border-radius: 10px; padding: 12px; color: var(--accent-cyan);
             font-family: 'JetBrains Mono', monospace; font-weight: 700;
         }
+        
         .preset-btn {
             padding: 10px; background: rgba(0, 168, 255, 0.1); border: 1px solid var(--water-color);
             border-radius: 8px; color: #94a3b8; cursor: pointer; font-weight: 600; transition: all 0.3s;
         }
+        
         .preset-btn:hover, .preset-btn.active {
             background: rgba(0, 255, 204, 0.3); color: var(--accent-cyan); border-color: var(--accent-cyan);
         }
+        
         .viz-container {
             background: rgba(15, 20, 35, 0.6); border: 1px solid var(--water-color);
             border-radius: 20px; padding: 30px; margin-bottom: 30px; position: relative;
         }
+        
         .system-diagram {
             display: flex; justify-content: space-between; align-items: flex-end;
             min-height: 450px; gap: 40px;
         }
+        
         .connection-pipe {
             position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%);
             width: 300px; height: 30px; background: linear-gradient(180deg, #2a2a3a 0%, #1a1a2a 100%);
             border: 2px solid var(--water-color); border-radius: 15px; overflow: hidden;
             box-shadow: 0 0 20px var(--water-glow);
         }
+        
         .flow-effect {
             position: absolute; top: 0; left: -100px; width: 100px; height: 100%;
             background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 204, 0.6) 50%, transparent 100%);
             animation: flowMove 1.5s infinite linear;
         }
+        
         @keyframes flowMove { 0% { left: -100px; } 100% { left: 100%; } }
+        
         .cylinder-frame {
             width: 160px; height: 300px; background: linear-gradient(180deg, #2a2a3a 0%, #1a1a2a 100%);
             border: 3px solid var(--water-color); border-radius: 15px 15px 0 0;
             position: relative; overflow: hidden; box-shadow: inset 0 5px 15px rgba(0,0,0,0.8);
         }
+        
         .cylinder-frame.large { width: 220px; }
+        
+        .cylinder-frame.stanley-large {
+            width: 260px; /* Aumentado para mejor visualización */
+            border-color: var(--stanley-red);
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.8), 0 0 20px var(--stanley-glow);
+        }
+        
         .water-body {
             position: absolute; bottom: 0; left: 5px; right: 5px; height: 60%;
             background: linear-gradient(180deg, var(--water-color) 0%, #00ffcc 100%);
             border-radius: 0 0 10px 10px; transition: height 1.2s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 0 25px var(--water-glow);
         }
+        
+        .water-body.stanley-water {
+            background: linear-gradient(180deg, #ff6b6b 0%, var(--stanley-red) 100%);
+            box-shadow: 0 0 25px var(--stanley-glow);
+        }
+        
         .water-surface {
             position: absolute; top: 0; left: 0; right: 0; height: 4px;
             background: linear-gradient(90deg, transparent 0%, var(--accent-cyan) 50%, transparent 100%);
             animation: ripple 2s infinite ease-in-out;
         }
+        
         @keyframes ripple { 0%, 100% { transform: scaleX(1); opacity: 0.5; } 50% { transform: scaleX(1.4); opacity: 1; } }
+        
         .piston {
             position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
             width: 80px; height: 50px; border-radius: 10px; display: flex; align-items: center;
             justify-content: center; font-weight: 800; transition: top 1.2s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 8px 20px rgba(0,0,0,0.6);
         }
-        .piston.enerpac { background: linear-gradient(180deg, #3498db 0%, #1f6fb2 100%); border: 2px solid #1f6fb2; color: white; }
-        .piston.stanley { background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); border: 2px solid #c0392b; color: white; }
+        
+        .piston.enerpac {
+            background: linear-gradient(180deg, #3498db 0%, #1f6fb2 100%);
+            border: 2px solid #1f6fb2; color: white;
+        }
+        
+        .piston.stanley {
+            background: linear-gradient(180deg, var(--stanley-red) 0%, #c0392b 100%);
+            border: 2px solid #c0392b; color: white;
+        }
+        
         .results-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px; margin-top: 20px;
         }
+        
         .result-card {
             background: var(--bg-card); border: 1px solid rgba(0, 255, 204, 0.2);
             border-radius: 12px; padding: 15px; text-align: center;
         }
-        .result-value { font-family: 'JetBrains Mono', monospace; font-size: 1.8rem; font-weight: 700; color: var(--accent-cyan); }
+        
+        .result-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.8rem; font-weight: 700; color: var(--accent-cyan);
+        }
+        
+        .result-unit { font-size: 0.75rem; color: #94a3b8; }
+        
         .execute-btn {
             width: 100%; padding: 18px; background: linear-gradient(135deg, var(--accent-cyan), var(--water-color));
             border: none; border-radius: 14px; color: var(--bg-primary); font-size: 1.1rem;
             font-weight: 800; cursor: pointer; margin-top: 15px; transition: transform 0.3s, box-shadow 0.3s;
         }
+        
         .execute-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0, 255, 204, 0.4); }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- TU SIMULADOR COMPLETO AQUÍ -->
+        <header class="header">
+            <h1>PASCAL PRESS SIMULATOR</h1>
+            <p class="subtitle">Comparación Visual: Enerpac vs Stanley</p>
+        </header>
+
+        <div class="control-grid">
+            <div class="control-card">
+                <div class="card-title">🎯 Fuerza de Entrada</div>
+                <div class="input-group">
+                    <label class="input-label">Fuerza (F₁) en Newtons</label>
+                    <input type="number" id="fuerzaEntrada" class="input-field" value="2500" min="100" max="50000">
+                </div>
+                <div class="preset-grid">
+                    <button class="preset-btn" data-fuerza="1000">1 kN</button>
+                    <button class="preset-btn active" data-fuerza="2500">2.5 kN</button>
+                    <button class="preset-btn" data-fuerza="5000">5 kN</button>
+                    <button class="preset-btn" data-fuerza="10000">10 kN</button>
+                </div>
+            </div>
+
+            <div class="control-card">
+                <div class="card-title">🔧 Configuración Geométrica</div>
+                <div class="input-group">
+                    <label class="input-label">Área Pistón Pequeño (A₁) m²</label>
+                    <input type="number" id="areaPequena" class="input-field" value="0.0012" step="0.0001">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Área Pistón Grande (A₂) m²</label>
+                    <input type="number" id="areaGrande" class="input-field" value="0.020" step="0.001">
+                </div>
+            </div>
+
+            <div class="control-card">
+                <div class="card-title">🏭 Seleccionar Modelo</div>
+                <div class="preset-grid" style="grid-template-columns: 1fr;">
+                    <button class="preset-btn active" data-model="enerpac">🔵 ENERPAC (16.7×)</button>
+                    <button class="preset-btn" data-model="stanley">🔴 STANLEY (20×)</button>
+                </div>
+                <button class="execute-btn" onclick="simular()">▶ SIMULAR PRESIÓN</button>
+            </div>
+        </div>
+
+        <div class="viz-container" id="vizContainer">
+            <div class="model-label enerpac" id="modelLabel">🔵 MODELO ENERPAC</div>
+            
+            <div class="system-diagram">
+                <div class="connection-pipe" id="connectionPipe">
+                    <div class="flow-effect"></div>
+                </div>
+
+                <div class="cylinder">
+                    <div class="cylinder-frame" id="framePequeno">
+                        <div class="water-body" id="aguaPequena">
+                            <div class="water-surface"></div>
+                            <div class="bubbles" id="burbujasPequenas"></div>
+                        </div>
+                        <div class="piston enerpac" id="pistonPequeno">P1</div>
+                    </div>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <div style="font-family: JetBrains Mono; color: var(--accent-cyan); font-size: 1.1rem;" id="labelF1">F₁ = 2500 N</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;" id="labelP1">Presión: 0.00 MPa</div>
+                    </div>
+                </div>
+
+                <div class="cylinder">
+                    <div class="cylinder-frame large" id="frameGrande">
+                        <div class="water-body" id="aguaGrande">
+                            <div class="water-surface"></div>
+                            <div class="bubbles" id="burbujasGrandes"></div>
+                        </div>
+                        <div class="piston enerpac" id="pistonGrande">P2</div>
+                    </div>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <div style="font-family: JetBrains Mono; color: var(--accent-cyan); font-size: 1.1rem;" id="labelF2">F₂ = ? N</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;" id="labelP2">Presión: 0.00 MPa</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-grid">
+            <div class="result-card">
+                <div class="result-unit">Presión del Sistema</div>
+                <div class="result-value" id="resultPresion">0.00</div>
+                <div class="result-unit">MPa</div>
+            </div>
+            <div class="result-card">
+                <div class="result-unit">Fuerza de Salida</div>
+                <div class="result-value" id="resultFuerza">0</div>
+                <div class="result-unit">N</div>
+            </div>
+            <div class="result-card">
+                <div class="result-unit">Ventaja Mecánica</div>
+                <div class="result-value" id="resultVentaja">0.0</div>
+                <div class="result-unit">×</div>
+            </div>
+            <div class="result-card">
+                <div class="result-unit">Modelo Activo</div>
+                <div class="result-value" id="resultModelo">ENERPAC</div>
+                <div class="result-unit" id="modeloEspecificaciones">16.7× · 41.7 kN</div>
+            </div>
+        </div>
     </div>
+
     <script>
-        // TU SCRIPT COMPLETO AQUÍ
+        // ===== CONFIGURACIÓN DE MODELOS (SIN CAMBIOS) =====
+        const MODELOS = {
+            enerpac: {
+                nombre: "ENERPAC IP-10T",
+                areaPequena: 0.0012,
+                areaGrande: 0.020,
+                multiplicador: 16.7,
+                color: 'enerpac'
+            },
+            stanley: {
+                nombre: "STANLEY HPD-100",
+                areaPequena: 0.0015,
+                areaGrande: 0.030,
+                multiplicador: 20,
+                color: 'stanley'
+            }
+        };
+
+        let modeloActual = 'enerpac';
+
+        // ===== INICIALIZACIÓN (SIN CAMBIOS) =====
+        document.addEventListener('DOMContentLoaded', function() {
+            configurarEventListeners();
+            cargarModelo('enerpac');
+            generarBurbujas();
+            simular(); // Ejecutar al cargar
+        });
+
+        function configurarEventListeners() {
+            // Botones de preset
+            document.querySelectorAll('[data-fuerza]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('fuerzaEntrada').value = btn.dataset.fuerza;
+                    document.querySelectorAll('[data-fuerza]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    simular();
+                });
+            });
+
+            // Botones de modelo
+            document.querySelectorAll('[data-model]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    modeloActual = btn.dataset.model;
+                    cargarModelo(modeloActual);
+                    document.querySelectorAll('[data-model]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+        }
+
+        function cargarModelo(modelo) {
+            const config = MODELOS[modelo];
+            document.getElementById('areaPequena').value = config.areaPequena;
+            document.getElementById('areaGrande').value = config.areaGrande;
+            
+            // Cambiar colores
+            const frameGrande = document.getElementById('frameGrande');
+            const aguaGrande = document.getElementById('aguaGrande');
+            const pistonGrande = document.getElementById('pistonGrande');
+            const labelModelo = document.getElementById('modelLabel');
+            
+            if (modelo === 'stanley') {
+                frameGrande.className = 'cylinder-frame stanley-large';
+                aguaGrande.className = 'water-body stanley-water';
+                pistonGrande.className = 'piston stanley';
+                labelModelo.textContent = '🔴 MODELO STANLEY';
+                labelModelo.className = 'model-label stanley';
+            } else {
+                frameGrande.className = 'cylinder-frame large';
+                aguaGrande.className = 'water-body';
+                pistonGrande.className = 'piston enerpac';
+                labelModelo.textContent = '🔵 MODELO ENERPAC';
+                labelModelo.className = 'model-label enerpac';
+            }
+            
+            simular();
+        }
+
+        function simular() {
+            const F1 = parseFloat(document.getElementById('fuerzaEntrada').value) || 2500;
+            const A1 = parseFloat(document.getElementById('areaPequena').value) || 0.0012;
+            const A2 = parseFloat(document.getElementById('areaGrande').value) || 0.020;
+
+            const presionPa = F1 / A1;
+            const presionMPa = presionPa / 1e6;
+            const F2 = presionPa * A2;
+            const ventaja = A2 / A1;
+
+            // ===== ACTUALIZACIÓN DE VALORES =====
+            document.getElementById('labelF1').textContent = `F₁ = ${F1.toLocaleString()} N`;
+            document.getElementById('labelF2').textContent = `F₂ = ${Math.round(F2).toLocaleString()} N`;
+            document.getElementById('labelP1').textContent = `Presión: ${presionMPa.toFixed(2)} MPa`;
+            document.getElementById('labelP2').textContent = `Presión: ${presionMPa.toFixed(2)} MPa`;
+            document.getElementById('resultPresion').textContent = presionMPa.toFixed(2);
+            document.getElementById('resultFuerza').textContent = Math.round(F2).toLocaleString();
+            document.getElementById('resultVentaja').textContent = ventaja.toFixed(1) + '×';
+            
+            const config = MODELOS[modeloActual];
+            document.getElementById('resultModelo').textContent = config.nombre.split(' ')[0];
+            document.getElementById('modeloEspecificaciones').textContent = `${ventaja.toFixed(1)}× · ${(F2/1000).toFixed(1)} kN`;
+
+            // ===== ANIMACIÓN CON RANGO REDUCIDO PARA MAYOR VISIBILIDAD =====
+            // **MODIFICACIÓN CLAVE**: Reducimos el divisor de 20 a 5 para movimiento 4x más dramático
+            const aguaPequena = document.getElementById('aguaPequena');
+            const aguaGrande = document.getElementById('aguaGrande');
+            const pistonPequeno = document.getElementById('pistonPequeno');
+            const pistonGrande = document.getElementById('pistonGrande');
+            
+            const strokePequeno = Math.min(80, presionMPa * 15); // **Antes: * 3, Ahora: * 15**
+            const esStanley = modeloActual === 'stanley';
+            const strokeGrande = Math.min(esStanley ? 140 : 100, presionMPa * (esStanley ? 12 : 10));
+            
+            const nivelPequeno = Math.max(30, Math.min(85, 60 - strokePequeno * 0.8));
+            const nivelGrande = Math.max(30, Math.min(85, 60 + strokeGrande * 0.6));
+
+            aguaPequena.style.height = `${nivelPequeno}%`;
+            aguaGrande.style.height = `${nivelGrande}%`;
+            pistonPequeno.style.top = `${-30 - strokePequeno}px`;
+            pistonGrande.style.top = `${-30 + strokeGrande}px`;
+
+            if (presionMPa > 0.1) generarBurbujas();
+        }
+
+        function generarBurbujas() {
+            ['burbujasPequenas', 'burbujasGrandes'].forEach(id => {
+                const contenedor = document.getElementById(id);
+                contenedor.innerHTML = '';
+                const cantidad = id === 'burbujasGrandes' ? 15 : 10;
+                const esStanley = modeloActual === 'stanley';
+                
+                for (let i = 0; i < cantidad; i++) {
+                    const burbuja = document.createElement('div');
+                    burbuja.style.cssText = `
+                        position: absolute;
+                        background: radial-gradient(circle, ${esStanley ? 'rgba(255, 107, 107, 0.5)' : 'rgba(0, 255, 204, 0.4)'} 0%, transparent 70%);
+                        border-radius: 50%; width: ${Math.random() * 12 + 6}px; height: ${Math.random() * 12 + 6}px;
+                        left: ${Math.random() * 80 + 10}%; bottom: 0;
+                        animation: subir ${3 + Math.random() * 3}s infinite ease-in-out;
+                        animation-delay: ${Math.random() * 2}s;
+                    `;
+                    contenedor.appendChild(burbuja);
+                }
+            });
+        }
     </script>
 </body>
 </html>
